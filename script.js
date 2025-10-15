@@ -3,19 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const purposeSelect = document.getElementById("purpose");
   const otherPurposeGroup = document.getElementById("otherPurposeGroup");
 
-  // ✅ Replace with your deployed Google Apps Script Web App URL
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwf_M52uzhdiLdP1UZSRfac_VJ0_fLgcj7rkWH8G1jq28s4oyACjAY52eQZUMLhEHvl/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzxNkIPD7EjCRIDpKACHnqzoPMECU5sBcfoZ1tp87BjXlCSKF5ktzAQN1z8d5vMGrga1w/exec";
+  
 
-  // Show/hide "Other Purpose" input
   purposeSelect.addEventListener("change", () => {
-    if (purposeSelect.value === "other") {
-      otherPurposeGroup.classList.remove("hidden");
-    } else {
-      otherPurposeGroup.classList.add("hidden");
-    }
+    otherPurposeGroup.classList.toggle("hidden", purposeSelect.value !== "other");
   });
 
-  // Handle form submission
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -31,40 +25,37 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      // Send form data to Apps Script
+      // Save Reception data to Google Sheet
       const response = await fetch(WEB_APP_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "text/plain" }, // ✅ fixed
         body: JSON.stringify(formData),
       });
 
       const result = await response.json();
 
-      if (result.success) {
-        const purpose = formData.purpose.toLowerCase();
-
-        // Redirect or alert based on purpose
-        if (purpose === "interview") {
-          alert("✅ Interview details submitted! You’ll receive a WhatsApp message shortly.");
-          // Optional: redirect if you have a separate page
-          // window.location.href = "interview.html";
-        } else if (purpose === "training") {
-          window.location.href = "indextraining.html";
-        } else if (purpose === "bikedelivery") {
-          window.location.href = "vehicle.html";
-        } else if (purpose === "accessories") {
-          window.location.href = "accessories.html";
-        } else {
-          alert("✅ Reception data saved!");
-          form.reset();
-          otherPurposeGroup.classList.add("hidden");
-        }
-      } else {
-        console.error("❌ Apps Script response error:", result);
-        alert("⚠️ Submission failed! Please try again.");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save data");
       }
-    } catch (err) {
-      console.error("❌ Error submitting data:", err);
+
+      // Redirect based on purpose
+      const purpose = formData.purpose.toLowerCase();
+      if (purpose === "interview") {
+        window.location.href = "interviewType.html"
+      } else if (purpose === "training") {
+        window.location.href = "indextraining.html";
+      } else if (purpose === "bikedelivery") {
+        window.location.href = "vehicle.html";
+      } else if (purpose === "accessories") {
+        window.location.href = "accessories.html";
+      } else {
+        alert("✅ Reception data saved!");
+        form.reset();
+        otherPurposeGroup.classList.add("hidden");
+      }
+
+    } catch (error) {
+      console.error("Error submitting reception data:", error);
       alert("❌ Error submitting data!");
     }
   });
